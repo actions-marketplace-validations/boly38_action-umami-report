@@ -91,15 +91,18 @@ git branch -f to-package
 git push origin to-package --force
 ```
 
+⚠️ **IMPORTANT:** The target orphan branch name is read from `package.json::orphanBranch` **of the commit pointed by `to-package`**, not from the current `main` branch.
+
 **What happens when you push `to-package`:**
 
 1. Workflow `.github/workflows/main_ci_and_package_action.yml` is triggered with `MUST_BE_PACKAGED=true`
-2. The workflow determines the target orphan branch name:
-   - If source is `main` → `ORPHAN_BRANCH=main-version`
-   - Otherwise → `ORPHAN_BRANCH=$(jq -r .orphanBranch package.json)`
-3. The code is packaged using `@vercel/ncc` → all deps bundled in `dist/`
-4. A tag `last-<ORPHAN_BRANCH>` is created/updated to mark the source commit
-5. The `dist/` content is force-pushed to the orphan branch
+2. The workflow checks out the commit pointed by `to-package`
+3. The workflow determines the target orphan branch name **from that commit's `package.json`**:
+   - If source branch is `main` → `ORPHAN_BRANCH=main-version` (hardcoded)
+   - Otherwise → `ORPHAN_BRANCH=$(jq -r .orphanBranch package.json)` (reads from checked-out commit)
+4. The code is packaged using `@vercel/ncc` → all deps bundled in `dist/`
+5. A tag `last-<ORPHAN_BRANCH>` is created/updated to mark the source commit
+6. The `dist/` content is force-pushed to the orphan branch `<ORPHAN_BRANCH>`
 
 ### Publishing a new version-specific branch
 
@@ -109,6 +112,7 @@ git push origin to-package --force
    ```json
    "orphanBranch": "umami-server-2.17.0"
    ```
+   ⚠️ **This value determines the orphan branch name that will be created!**
 
 2. **Create a version** using patch/minor/major:
    ```bash
@@ -118,18 +122,35 @@ git push origin to-package --force
 
 3. **Point `to-package` to the version you want to publish:**
    ```bash
-   git checkout v6.0.2
+   git checkout v6.0.2  # The commit containing the orphanBranch value
    git branch -f to-package
    git push origin to-package --force
    ```
+   💡 The workflow will read `package.json::orphanBranch` from this commit (v6.0.2)
 
 4. **Verify the workflow execution** in GitHub Actions
    - Check that `main_ci_and_package_action.yml` completes successfully
    - Verify the orphan branch was updated: `git fetch && git log origin/umami-server-2.17.0`
    - Verify the tag was created: `git fetch --tags && git show last-umami-server-2.17.0`
 
-**Example:**
-The `umami-server-2.17.0` dist orphan branch uses `last-umami-server-2.17.0` tag as its source reference.
+**Example scenario:**
+
+Suppose you have:
+- `main` branch with `package.json::orphanBranch = "umami-server-3.0.0"`
+- Tag `v6.0.2` with `package.json::orphanBranch = "umami-server-2.17.0"`
+
+If you run:
+```bash
+git checkout v6.0.2
+git branch -f to-package
+git push origin to-package --force
+```
+
+The workflow will:
+1. Checkout the `v6.0.2` commit
+2. Read `package.json::orphanBranch` from that commit → `"umami-server-2.17.0"`
+3. Package and push to orphan branch `umami-server-2.17.0` (NOT `umami-server-3.0.0` from main!)
+4. Create tag `last-umami-server-2.17.0` pointing to `v6.0.2`
 
 ## HowTo create a fresh version
 - install GitHub client

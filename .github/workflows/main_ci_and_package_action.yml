@@ -10,9 +10,9 @@
 #   git branch -f to-package
 #   git push origin to-package --force
 #
-# The target orphan branch is determined by:
-#   - Source = 'main' → orphan branch = 'main-version' (for QA/testing)
-#   - Source = other  → orphan branch = package.json::orphanBranch (for releases)
+# The target orphan branch is determined by the package.json OF THE COMMIT pointed by 'to-package':
+#   - Source = 'main' → orphan branch = 'main-version' (hardcoded for QA/testing)
+#   - Source = other  → orphan branch = package.json::orphanBranch of that commit (for releases)
 #
 # 📚 See CONTRIBUTING.md section "HowTo publish a new umami-server compatible branch"
 #
