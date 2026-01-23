@@ -61,6 +61,8 @@ env/                      ← Templates config locale (.env, init scripts)
 **Solutions**:
 - Préférer `intellij_get_file_text_by_path` après `multi_edit` (lit buffer IDE)
 - Éviter `grep`/`cat` immédiatement après édition (lit disque non sauvegardé)
+- **Auto-save IDE**: Settings → System Settings → Synchronization (recommandé: 15s idle)
+- Attendre ~15-20s avant `git status`/`git diff` après éditions multiples
 
 ### Exceptions acceptées
 

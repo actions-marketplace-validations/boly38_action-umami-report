@@ -1,16 +1,7 @@
-# 🧪 QA Test - Umami Hosted (using main-version orphan branch)
+# 🧪 QA Test - Umami Hosted (@umami-server-3.0.3)
 #
-# This workflow tests the PACKAGED version from the 'main-version' orphan branch.
-#
-# ℹ️ The 'main-version' branch is automatically updated when:
-#   - Pushing to 'main' branch (auto-packaging)
-#   - Forcing 'to-package' to point to 'main' then pushing it
-#
-# 🔄 To update 'main-version' with latest main:
-#   git checkout main && git pull
-#   git branch -f to-package && git push origin to-package --force
-#
-# 📚 See CONTRIBUTING.md "HowTo publish a new umami-server compatible branch"
+# Tests packaged orphan branch. To update version: edit 'uses:' line below.
+# 📚 Doc: .github/CONTRIBUTING.md "HowTo publish a new umami-server compatible branch"
 #
 name: main_manual_qa_host
 permissions:
@@ -22,7 +13,7 @@ on:
 
 jobs:
   umamiReportJob:
-    name: Manual QA Umami Hosted action-umami-report@main-version
+    name: Manual QA Umami Hosted action-umami-report@umami-server-3.0.3
     runs-on: ubuntu-latest
     env:
       UMAMI_LOGO: https://raw.githubusercontent.com/umami-software/website/refs/heads/master/public/images/umami-logo.png
@@ -33,9 +24,9 @@ jobs:
     #      umami_report: ${{ steps.umamiReport.outputs.umamiReport }}
     #      umami_one_line_report: ${{ steps.umamiReport.outputs.umamiOneLineReport }}
     steps:
-      - name: QA Umami report - orphanBranch=main-version
+      - name: QA Umami report - orphanBranch=umami-server-3.0.3
         id: umamiReportStep
-        uses: boly38/action-umami-report@main-version
+        uses: boly38/action-umami-report@umami-server-3.0.3
         with:
           umami-server: ${{secrets.UMAMI_SERVER}}
           umami-user: ${{secrets.UMAMI_USERNAME}}

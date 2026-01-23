@@ -65,28 +65,23 @@ ncc build index.js
 
 This project uses **orphan branches** to distribute packaged versions of the action (with all dependencies bundled in `dist/`).
 
-**Two types of orphan branches exist:**
-
-1. **`main-version`** - Auto-generated from the `main` branch
-   - Used for QA and testing the latest development version
-   - Always points to the latest packaged version of `main`
-
-2. **`umami-server-X.Y.Z`** - Version-specific branches (defined in `package.json::orphanBranch`)
-   - Used for stable releases compatible with specific Umami server versions
-   - Examples: `umami-server-3.0.3` for Umami v3.0.3, `umami-server-2.17.0` for Umami v2.17.x
+**Orphan branches** are named after the Umami server version they support (e.g., `umami-server-3.0.3`).
+- Defined in `package.json::orphanBranch`
+- Used for stable releases and QA testing
+- Examples: `umami-server-3.0.3` for Umami v3.0.3, `umami-server-2.17.0` for Umami v2.17.x
 
 ### The `to-package` branch mechanism
 
 To trigger packaging, use the **`to-package` branch** as a pointer:
 
 ```bash
-# To package the current main branch → creates/updates 'main-version'
+# To package the current main branch → creates/updates orphan branch from package.json::orphanBranch
 git checkout main
 git branch -f to-package
 git push origin to-package --force
 
-# To package a specific version → creates/updates orphan branch from package.json
-git checkout v6.0.2
+# To package a specific version tag
+git checkout v7.0.0
 git branch -f to-package
 git push origin to-package --force
 ```
@@ -97,9 +92,7 @@ git push origin to-package --force
 
 1. Workflow `.github/workflows/main_ci_and_package_action.yml` is triggered with `MUST_BE_PACKAGED=true`
 2. The workflow checks out the commit pointed by `to-package`
-3. The workflow determines the target orphan branch name **from that commit's `package.json`**:
-   - If source branch is `main` → `ORPHAN_BRANCH=main-version` (hardcoded)
-   - Otherwise → `ORPHAN_BRANCH=$(jq -r .orphanBranch package.json)` (reads from checked-out commit)
+3. The workflow reads the target orphan branch name **from that commit's `package.json::orphanBranch`**
 4. The code is packaged using `@vercel/ncc` → all deps bundled in `dist/`
 5. A tag `last-<ORPHAN_BRANCH>` is created/updated to mark the source commit
 6. The `dist/` content is force-pushed to the orphan branch `<ORPHAN_BRANCH>`
@@ -126,11 +119,11 @@ git push origin to-package --force
 
 3. **Point `to-package` to the version you want to publish:**
    ```bash
-   git checkout v6.0.2  # The commit containing the orphanBranch value
+   git checkout v7.0.0  # The commit containing the orphanBranch value
    git branch -f to-package
    git push origin to-package --force
    ```
-   💡 The workflow will read `package.json::orphanBranch` from this commit (v6.0.2)
+   💡 The workflow will read `package.json::orphanBranch` from this commit (v7.0.0)
 
 4. **Verify the workflow execution** in GitHub Actions
    - Check that `main_ci_and_package_action.yml` completes successfully

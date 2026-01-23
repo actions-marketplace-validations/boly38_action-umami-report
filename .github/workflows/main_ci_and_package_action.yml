@@ -1,20 +1,9 @@
 # 📦 CI/CD Pipeline with Packaging
 #
-# This workflow performs:
-# 1. CI: Tests, audit, coverage for all triggers
-# 2. PACKAGING: Creates distributable orphan branches (only on 'to-package' or 'main' push)
+# CI: Tests, audit, coverage for all triggers
+# PACKAGING: Creates orphan branches via 'to-package' branch
 #
-# 🎯 PACKAGING MECHANISM:
-# To package a branch, point 'to-package' to it:
-#   git checkout <target-branch>   # e.g., main, v6.0.2, etc.
-#   git branch -f to-package
-#   git push origin to-package --force
-#
-# The target orphan branch is determined by the package.json OF THE COMMIT pointed by 'to-package':
-#   - Source = 'main' → orphan branch = 'main-version' (hardcoded for QA/testing)
-#   - Source = other  → orphan branch = package.json::orphanBranch of that commit (for releases)
-#
-# 📚 See CONTRIBUTING.md section "HowTo publish a new umami-server compatible branch"
+# 📚 Full documentation: .github/CONTRIBUTING.md "HowTo publish a new umami-server compatible branch"
 #
 name: main_ci_and_package_action
 permissions:
@@ -28,7 +17,7 @@ on:
   push:
     branches:
       - to-package  # 📦 Packaging trigger: points to the branch to package
-      - main        # 🧪 CI + creates 'main-version' orphan branch
+      - main        # 🧪 CI only (no packaging)
   pull_request:
     paths:
       - 'lib/**'
@@ -133,17 +122,12 @@ jobs:
         run: pnpm install -g @vercel/ncc
         if: env.MUST_BE_PACKAGED == 'true'
 
-      - name: PACKAGE - SETUP - Define ORPHAN_BRANCH name
+      - name: PACKAGE - SETUP - Define ORPHAN_BRANCH name from package.json
         id: get_branch
         if: env.MUST_BE_PACKAGED == 'true'
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-          echo "ORPHAN_BRANCH=main-version" >> $GITHUB_ENV
-          else
           echo "ORPHAN_BRANCH=$(jq -r .orphanBranch package.json)" >> $GITHUB_ENV
-          fi
         # nb: jq extracts from package.json using 'orphanBranch' as key
-        # warn: dont target 'main' as orphan branch
 
       - name: PACKAGE - BUILD - autonomous package Action with deps in dist/ and update last tag
         if: env.MUST_BE_PACKAGED == 'true'
