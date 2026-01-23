@@ -54,12 +54,21 @@ env/                      ← Templates config locale (.env, init scripts)
 - ❌ find/mv en masse → Utiliser Refactor IDE
 - ❌ `npm` → **Toujours utiliser `pnpm`**
 
+### ⚠️ Asynchronisme fichiers
+
+**Problème**: `multi_edit` modifie en mémoire IDE, `grep`/`git diff` lit sur disque → décalage temporel
+
+**Solutions**:
+- Préférer `intellij_get_file_text_by_path` après `multi_edit` (lit buffer IDE)
+- Éviter `grep`/`cat` immédiatement après édition (lit disque non sauvegardé)
+
 ### Exceptions acceptées
 
 - Installation: `pnpm install`
 - Tests: `pnpm run test` ou `pnpm run ci-test` (coverage)
 - Scripts manuels: `pnpm run day|week|month` (cf. package.json)
 - Debug: `export UMAMI_DEBUG_ACTION=true`
+- Vérifications git: `git status`, `git diff` (après délai si post-edit)
 
 ## Documentation
 
