@@ -73,7 +73,7 @@ This project uses **orphan branches** to distribute packaged versions of the act
 
 2. **`umami-server-X.Y.Z`** - Version-specific branches (defined in `package.json::orphanBranch`)
    - Used for stable releases compatible with specific Umami server versions
-   - Example: `umami-server-2.17.0` for Umami v2.17.x compatibility
+   - Examples: `umami-server-3.0.3` for Umami v3.0.3, `umami-server-2.17.0` for Umami v2.17.x
 
 ### The `to-package` branch mechanism
 
@@ -110,9 +110,13 @@ git push origin to-package --force
 
 1. **Update `package.json::orphanBranch`** to match the target Umami server version
    ```json
-   "orphanBranch": "umami-server-2.17.0"
+   "orphanBranch": "umami-server-3.0.3"
    ```
    ⚠️ **This value determines the orphan branch name that will be created!**
+   
+   Examples:
+   - `"umami-server-3.0.3"` for Umami v3.0.3 compatibility (current v7.x)
+   - `"umami-server-2.17.0"` for Umami v2.17.x compatibility (legacy v6.x)
 
 2. **Create a version** using patch/minor/major:
    ```bash
@@ -130,13 +134,13 @@ git push origin to-package --force
 
 4. **Verify the workflow execution** in GitHub Actions
    - Check that `main_ci_and_package_action.yml` completes successfully
-   - Verify the orphan branch was updated: `git fetch && git log origin/umami-server-2.17.0`
-   - Verify the tag was created: `git fetch --tags && git show last-umami-server-2.17.0`
+   - Verify the orphan branch was updated: `git fetch && git log origin/umami-server-3.0.3`
+   - Verify the tag was created: `git fetch --tags && git show last-umami-server-3.0.3`
 
 **Example scenario:**
 
 Suppose you have:
-- `main` branch with `package.json::orphanBranch = "umami-server-3.0.0"`
+- `main` branch with `package.json::orphanBranch = "umami-server-3.0.3"`
 - Tag `v6.0.2` with `package.json::orphanBranch = "umami-server-2.17.0"`
 
 If you run:
@@ -149,7 +153,7 @@ git push origin to-package --force
 The workflow will:
 1. Checkout the `v6.0.2` commit
 2. Read `package.json::orphanBranch` from that commit → `"umami-server-2.17.0"`
-3. Package and push to orphan branch `umami-server-2.17.0` (NOT `umami-server-3.0.0` from main!)
+3. Package and push to orphan branch `umami-server-2.17.0` (NOT `umami-server-3.0.3` from main!)
 4. Create tag `last-umami-server-2.17.0` pointing to `v6.0.2`
 
 ## HowTo create a fresh version
