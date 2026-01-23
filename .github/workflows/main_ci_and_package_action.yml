@@ -1,3 +1,21 @@
+# 📦 CI/CD Pipeline with Packaging
+#
+# This workflow performs:
+# 1. CI: Tests, audit, coverage for all triggers
+# 2. PACKAGING: Creates distributable orphan branches (only on 'to-package' or 'main' push)
+#
+# 🎯 PACKAGING MECHANISM:
+# To package a branch, point 'to-package' to it:
+#   git checkout <target-branch>   # e.g., main, v6.0.2, etc.
+#   git branch -f to-package
+#   git push origin to-package --force
+#
+# The target orphan branch is determined by:
+#   - Source = 'main' → orphan branch = 'main-version' (for QA/testing)
+#   - Source = other  → orphan branch = package.json::orphanBranch (for releases)
+#
+# 📚 See CONTRIBUTING.md section "HowTo publish a new umami-server compatible branch"
+#
 name: main_ci_and_package_action
 permissions:
   contents: write
@@ -9,8 +27,8 @@ on:
   # Triggers the workflow on push or pull request events but only for the prod branch
   push:
     branches:
-      - to-package
-      - main
+      - to-package  # 📦 Packaging trigger: points to the branch to package
+      - main        # 🧪 CI + creates 'main-version' orphan branch
   pull_request:
     paths:
       - 'lib/**'

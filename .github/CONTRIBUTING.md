@@ -61,14 +61,75 @@ ncc build index.js
 
 ## HowTo publish a new umami-server compatible branch ?
 
-- check that `package.json::orphanBranch` do match current umami server version compatibility of current source
-- create a version using patch/minor/major
-- create and push a `to-package` branch on the version you want to publish
-- this will trigger a `.github/workflows/main_ci_and_package_action.yml` workflow (internally with `MUST_BE_PACKAGED=true`)
-1) a dist package is created and pushed onto an orphan branch (`package.json::orphanBranch`)
-2) a new tag is (re-created and) pushed with `last-<orphanBranch>` as name to understand source code reference
+### Understanding the packaging mechanism
 
-For example the `umami-server-2.17.0` dist orphan branch used `last-umami-server-2.17.0` as source reference tag for the last packaging.
+This project uses **orphan branches** to distribute packaged versions of the action (with all dependencies bundled in `dist/`).
+
+**Two types of orphan branches exist:**
+
+1. **`main-version`** - Auto-generated from the `main` branch
+   - Used for QA and testing the latest development version
+   - Always points to the latest packaged version of `main`
+
+2. **`umami-server-X.Y.Z`** - Version-specific branches (defined in `package.json::orphanBranch`)
+   - Used for stable releases compatible with specific Umami server versions
+   - Example: `umami-server-2.17.0` for Umami v2.17.x compatibility
+
+### The `to-package` branch mechanism
+
+To trigger packaging, use the **`to-package` branch** as a pointer:
+
+```bash
+# To package the current main branch → creates/updates 'main-version'
+git checkout main
+git branch -f to-package
+git push origin to-package --force
+
+# To package a specific version → creates/updates orphan branch from package.json
+git checkout v6.0.2
+git branch -f to-package
+git push origin to-package --force
+```
+
+**What happens when you push `to-package`:**
+
+1. Workflow `.github/workflows/main_ci_and_package_action.yml` is triggered with `MUST_BE_PACKAGED=true`
+2. The workflow determines the target orphan branch name:
+   - If source is `main` → `ORPHAN_BRANCH=main-version`
+   - Otherwise → `ORPHAN_BRANCH=$(jq -r .orphanBranch package.json)`
+3. The code is packaged using `@vercel/ncc` → all deps bundled in `dist/`
+4. A tag `last-<ORPHAN_BRANCH>` is created/updated to mark the source commit
+5. The `dist/` content is force-pushed to the orphan branch
+
+### Publishing a new version-specific branch
+
+**Step-by-step process:**
+
+1. **Update `package.json::orphanBranch`** to match the target Umami server version
+   ```json
+   "orphanBranch": "umami-server-2.17.0"
+   ```
+
+2. **Create a version** using patch/minor/major:
+   ```bash
+   pnpm version patch  # or minor/major
+   git push --follow-tags
+   ```
+
+3. **Point `to-package` to the version you want to publish:**
+   ```bash
+   git checkout v6.0.2
+   git branch -f to-package
+   git push origin to-package --force
+   ```
+
+4. **Verify the workflow execution** in GitHub Actions
+   - Check that `main_ci_and_package_action.yml` completes successfully
+   - Verify the orphan branch was updated: `git fetch && git log origin/umami-server-2.17.0`
+   - Verify the tag was created: `git fetch --tags && git show last-umami-server-2.17.0`
+
+**Example:**
+The `umami-server-2.17.0` dist orphan branch uses `last-umami-server-2.17.0` tag as its source reference.
 
 ## HowTo create a fresh version
 - install GitHub client

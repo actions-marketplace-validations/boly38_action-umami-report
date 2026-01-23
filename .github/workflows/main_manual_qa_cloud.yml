@@ -1,3 +1,17 @@
+# 🧪 QA Test - Umami Cloud (using main-version orphan branch)
+#
+# This workflow tests the PACKAGED version from the 'main-version' orphan branch.
+#
+# ℹ️ The 'main-version' branch is automatically updated when:
+#   - Pushing to 'main' branch (auto-packaging)
+#   - Forcing 'to-package' to point to 'main' then pushing it
+#
+# 🔄 To update 'main-version' with latest main:
+#   git checkout main && git pull
+#   git branch -f to-package && git push origin to-package --force
+#
+# 📚 See CONTRIBUTING.md "HowTo publish a new umami-server compatible branch"
+#
 name: main_manual_qa_cloud
 permissions:
   contents: none
